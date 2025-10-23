@@ -9,19 +9,19 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY audio_splitter.py video_merger.py handler.py ./
+# copia todo el código de src/
+COPY src/ ./src
 
 ENV PYTHONUNBUFFERED=1 \
     FFMPEG_PATH="ffmpeg" \
-    FFPROBE_PATH="ffprobe"
+    FFPROBE_PATH="ffprobe" \
+    PYTHONPATH="/app"
 
-# (opcional) usuario no root
 RUN useradd -m appuser
 USER appuser
 
-# Healthcheck simple
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD ffmpeg -version >/dev/null 2>&1 || exit 1
 
-# ¡Listo para RunPod Serverless!
-CMD ["python", "handler.py"]
+# si handler.py está en src/ como módulo:
+CMD ["python", "-m", "src.handler"]
